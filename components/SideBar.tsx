@@ -10,6 +10,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import { useEffect, useState } from 'react';
 
 const drawerWidth: number = 240;
 
@@ -65,10 +66,44 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 
 export default function SideBar() {
     const [open, setOpen] = React.useState(true);
+    const [metamask, setMetamask] = useState(false);
+    const [isConnected, setIsConnected] = useState(false);
+    const [accountAddress, setAccountAddress] = useState("");
 
     const toggleDrawer = () => {
         setOpen(!open);
     };
+
+    const connectWallet = async () => {
+        if (!metamask) {
+            console.log("not connected");
+            return;
+        }
+        try {
+            const { ethereum }: any = window;
+            const accounts = await ethereum.request({
+                method: "eth_requestAccounts",
+            });
+            setAccountAddress(accounts[0]);
+            setIsConnected(true);
+        } catch (err) {
+            console.error(err);
+            setIsConnected(false);
+        }
+
+    };
+
+    useEffect(() => {
+        const { ethereum }: any = window;
+        const checkAvailability = async () => {
+            console.log("checking metamask availability")
+            if (!ethereum) {
+                setMetamask(false);
+            }
+            setMetamask(true);
+        }
+        checkAvailability();
+    }, []);
 
     return (
         <>
@@ -90,7 +125,7 @@ export default function SideBar() {
                         color="inherit"
                         noWrap
                         sx={{ flexGrow: 1 }}
-                        >Dashboard - {"username"}
+                        >Dashboard - {accountAddress}
                     </Typography>
                     <IconButton color="inherit">
                         <Badge badgeContent={4} color="secondary">
@@ -121,11 +156,11 @@ export default function SideBar() {
                             </ListItemIcon>
                             <ListItemText primary="Dashboard" />
                         </ListItemButton>
-                        <ListItemButton>
+                        <ListItemButton onClick={async () => await connectWallet() } >
                             <ListItemIcon>
                                 <BarChartIcon />
                             </ListItemIcon>
-                            <ListItemText primary="Monitoring" />
+                            <ListItemText primary="Link wallet" />
                         </ListItemButton>
                         <ListItemButton onClick={() => console.log("signing out")}>
                             <ListItemIcon>
