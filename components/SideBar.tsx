@@ -13,6 +13,7 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
+import { signOut, useSession } from 'next-auth/react';
 
 const drawerWidth: number = 240;
 
@@ -73,6 +74,7 @@ export default function SideBar() {
     const [accountAddress, setAccountAddress] = useState("");
     const [balance, setBalance] = useState("");
     const [provider, setProvider] = useState(null);
+    const { data: session } = useSession({ required: true });
 
     const toggleDrawer = () => {
         setOpen(!open);
@@ -134,7 +136,7 @@ export default function SideBar() {
                         color="inherit"
                         noWrap
                         sx={{ flexGrow: 1 }}
-                        >Dashboard - {accountAddress} - Balance: {balance && balance}
+                        >Dashboard - {accountAddress} - {session && session.user.email}
                     </Typography>
                     <IconButton color="inherit">
                         <Badge badgeContent={4} color="secondary">
@@ -171,7 +173,7 @@ export default function SideBar() {
                             </ListItemIcon>
                             <ListItemText primary="Link wallet" />
                         </ListItemButton>
-                        <ListItemButton onClick={() => console.log("signing out")}>
+                        <ListItemButton onClick={() => session ? signOut() : console.log("not signed in..")}>
                             <ListItemIcon>
                                 <BarChartIcon />
                             </ListItemIcon>
