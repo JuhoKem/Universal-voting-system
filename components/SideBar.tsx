@@ -10,7 +10,9 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import { useEffect, useState } from 'react';
+import { ethers } from 'ethers';
 
 const drawerWidth: number = 240;
 
@@ -69,6 +71,8 @@ export default function SideBar() {
     const [metamask, setMetamask] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
     const [accountAddress, setAccountAddress] = useState("");
+    const [balance, setBalance] = useState("");
+    const [provider, setProvider] = useState(null);
 
     const toggleDrawer = () => {
         setOpen(!open);
@@ -85,6 +89,8 @@ export default function SideBar() {
                 method: "eth_requestAccounts",
             });
             setAccountAddress(accounts[0]);
+            const bal = await provider.getBalance(accounts[0]);
+            console.log(bal)
             setIsConnected(true);
         } catch (err) {
             console.error(err);
@@ -101,9 +107,12 @@ export default function SideBar() {
                 setMetamask(false);
             }
             setMetamask(true);
+            if (!provider) {
+                setProvider(new ethers.BrowserProvider(ethereum));
+            }
         }
         checkAvailability();
-    }, []);
+    }, [provider]);
 
     return (
         <>
@@ -125,7 +134,7 @@ export default function SideBar() {
                         color="inherit"
                         noWrap
                         sx={{ flexGrow: 1 }}
-                        >Dashboard - {accountAddress}
+                        >Dashboard - {accountAddress} - Balance: {balance && balance}
                     </Typography>
                     <IconButton color="inherit">
                         <Badge badgeContent={4} color="secondary">
@@ -158,7 +167,7 @@ export default function SideBar() {
                         </ListItemButton>
                         <ListItemButton onClick={async () => await connectWallet() } >
                             <ListItemIcon>
-                                <BarChartIcon />
+                                <AccountBalanceWalletIcon />
                             </ListItemIcon>
                             <ListItemText primary="Link wallet" />
                         </ListItemButton>
