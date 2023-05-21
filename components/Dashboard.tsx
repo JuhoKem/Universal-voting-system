@@ -50,12 +50,13 @@ export default function Dashboard() {
     const [tierLevel, setCandidateTier] = useState(""); //For the account's tier
     const [tierText, setTierText] = useState(""); //For the tier text
     const [errorMessage, setErrorMessage] = useState(""); //For errors coming from the smart contract
+    const [value, setValue] = useState(0); // Tab value
 
-    
-
- 
-    const [value, setValue] = useState(0);
-
+    /**
+     * On tab change
+     * @param event 
+     * @param newValue 
+     */
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
       setValue(newValue);
     };
@@ -333,8 +334,6 @@ const DeleteCandidate = async e => {
       }
     };
 
-
-
 return (
     <ThemeProvider theme={mdTheme}>
         <Box sx={{ display: 'flex' }}>
@@ -353,24 +352,49 @@ return (
           }}
         >
             <Toolbar />
-             {/*The buttons for adding and deleting candidates  */}
-            <Container maxWidth="lg" sx={{ mt: 14, mb: 4 }}>
-                <Grid container spacing={3}>
-                    <TextField label='Candidate name' id="addCand" value={input} onChange={ e => setInput(e.target.value)} ></TextField>
-                    <Grid item/> 
-                    <Button variant='contained' disabled={votingState} onClick={AddNewCandidate}>Add</Button>
-                    <Grid item sx={{ width: '10%' }} /> 
-                    <TextField label='Candidate id' id="delCand" value={input2} onChange={ e => setInput2(e.target.value)}></TextField>
-                    <Grid item/>
-                    <Button variant='contained' disabled={votingState} onClick={DeleteCandidate}>Delete</Button>
-                    <Grid item/>
-                    <Typography>Number of candidates: {candidatesCount}</Typography>
+
+            <Container maxWidth="lg" sx={{ mt: 14, mb: 4, ml: 10 }}>
+                <Grid container spacing={3} sx={{ display: "flex", flexDirection: "column" }}>
+                    <Typography component="h1"
+                        variant="h5"
+                        color="inherit"
+                        sx={{ mb: 5, ml: 0 }}>Universal voting system </Typography>
                 </Grid>
             </Container>
 
-
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs value={value} onChange={handleChange}>
+                    <Tab label="Management" />
+                    <Tab label="Voting" />
+                </Tabs>
+            </Box>
+            <TabPanel value={value} index={0}>
+                <Typography 
+                    component="h2"
+                    variant="h6"
+                    color="inherit"
+                    sx={{ mb: 5, ml: 0 }}>Candidate management
+                </Typography>
+                <Typography>Number of candidates: {candidatesCount}</Typography>
+                <Container maxWidth="lg" sx={{ mt: 5, mb: 5, ml: 0 }}>
+                    <Grid container spacing={3} sx={{ display: "flex", flexDirection: "column", width: '50%' }}>
+                        <TextField label='Candidate name' id="addCand" value={input} onChange={ e => setInput(e.target.value)} ></TextField>
+                        <Grid item/> 
+                        <Button variant='contained' disabled={votingState} onClick={AddNewCandidate}>Add</Button>
+                        <Grid item sx={{ width: '10%' }} /> 
+                        <TextField label='Candidate id' id="delCand" value={input2} onChange={ e => setInput2(e.target.value)}></TextField>
+                        <Grid item/>
+                        <Button variant='contained' disabled={votingState} onClick={DeleteCandidate}>Delete</Button>
+                        <Grid item/>
+                        
+                    </Grid>
+                </Container>
              {/*The button for adding a tier to a voter  */}
-             <Container maxWidth="lg" sx={{ mt: 14, mb: 4 }}>
+             <Typography component="h2"
+                        variant="h6"
+                        color="inherit"
+                        sx={{ mb: 5, ml: 0 }}>Voter tier management</Typography>
+             <Container maxWidth="lg" sx={{ mt: 5, mb: 5, ml: 0 }}>
                 <Grid container spacing={3}>
                     <TextField label='Voter address' id="tierAdderA" sx={{ width: '40%' }} value={input3} onChange={ e => setInput3(e.target.value)}></TextField>
                     <Grid item/>
@@ -383,6 +407,7 @@ return (
                 <Typography>{tierText} {tierLevel}</Typography>
             </Container>
 
+            </TabPanel>
 
           {/*Error messages */}
             {errorMessage && (
@@ -394,39 +419,43 @@ return (
                     </div>
                 </div>
                 )}
-            
-           {/*Mapping of all the candidates*/}
-            <Container maxWidth="lg" sx={{ mt: 10, mb: 4 }}>
-            <Grid container spacing={3}>
-                {items.length > 0 ? (
-                items.map((candidate: any) => (
-                    <Grid key={candidate._candidateId} item xs={12} md={4} lg={3}>
-                    <Card
-                        sx={{
-                        p: 2,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        height: 280,
-                        }}
-                        >
-                        <CardContent>
-                        <Typography variant='h6'>Candidate {candidate._candidateId}</Typography>
-                        <Typography variant='h4'>{candidate.name}</Typography>
-                        <Typography sx={{ mb: 1.5, mt: 1.5 }} color="text.secondary">Votes: {candidate.votes}</Typography>
-                        <br></br>
-                        </CardContent>
-                        <CardActions>
-                        <Button variant='contained' onClick={() => VoteCandidate(candidate._candidateId)}>Vote</Button>
-                        </CardActions>
-                        </Card>
+            <TabPanel value={value} index={1}>
+                <Container maxWidth="lg" sx={{ mt: 5, mb: 5, ml: 0 }}>
+                    <Grid container spacing={3}>
+                        {/*Mapping of all the candidates*/}
+                        {items.length > 0 ? (
+                            items.map((candidate: any) => (
+                                <Grid key={candidate._candidateId} item xs={12} md={4} lg={3}>
+                                <Card
+                                    sx={{
+                                        p: 2,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        height: 280,
+                                    }}
+                                    >
+                                    <CardContent>
+                                    <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                                        Candidate {candidate._candidateId}
+                                        </Typography>
+                                    <Typography variant='h5' component="div">{candidate.name}</Typography>
+                                    <Typography sx={{ mb: 1.5 }} color="text.secondary"></Typography>
+                                    <Typography variant="body2">
+                                        Votes: {candidate.votes}
+                                        </Typography>
+                                    </CardContent>
+                                    <CardActions>
+                                    <Button variant='contained' onClick={() => VoteCandidate(candidate._candidateId)}>Vote</Button>
+                                    </CardActions>
+                                    </Card>
+                                </Grid>
+                            ))
+                            ) : (
+                            <Typography>No candidates found</Typography>
+                            )}
                     </Grid>
-                ))
-                ) : (
-                <Typography>No candidates found</Typography>
-                )}
-            </Grid>
-            </Container>
-
+                </Container>
+            </TabPanel>
             </Box>
         </Box>
     </ThemeProvider>
