@@ -11,9 +11,8 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
 import { signOut, useSession } from 'next-auth/react';
+import { useWalletContext } from './WalletProvider';
 
 const drawerWidth: number = 240;
 
@@ -69,20 +68,18 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 
 export default function SideBar() {
     const [open, setOpen] = React.useState(true);
-    const [metamask, setMetamask] = useState(false);
-    const [isConnected, setIsConnected] = useState(false);
-    const [accountAddress, setAccountAddress] = useState("");
-    const [balance, setBalance] = useState("");
-    const [provider, setProvider] = useState(null);
     const { data: session } = useSession({ required: true });
+
+    const { connected, setIsConnected, accountAddress, setAccountAddress } = useWalletContext();
 
     const toggleDrawer = () => {
         setOpen(!open);
     };
 
     const connectWallet = async () => {
-        if (!metamask) {
-            console.log("not connected");
+        if (connected) {
+            setAccountAddress("");
+            setIsConnected(false);
             return;
         }
         try {
@@ -91,8 +88,6 @@ export default function SideBar() {
                 method: "eth_requestAccounts",
             });
             setAccountAddress(accounts[0]);
-            const bal = await provider.getBalance(accounts[0]);
-            console.log(bal)
             setIsConnected(true);
         } catch (err) {
             console.error(err);
@@ -100,21 +95,6 @@ export default function SideBar() {
         }
 
     };
-
-    useEffect(() => {
-        const { ethereum }: any = window;
-        const checkAvailability = async () => {
-            console.log("checking metamask availability")
-            if (!ethereum) {
-                setMetamask(false);
-            }
-            setMetamask(true);
-            if (!provider) {
-                setProvider(new ethers.BrowserProvider(ethereum));
-            }
-        }
-        checkAvailability();
-    }, [provider]);
 
     return (
         <>
@@ -171,7 +151,7 @@ export default function SideBar() {
                             <ListItemIcon>
                                 <AccountBalanceWalletIcon />
                             </ListItemIcon>
-                            <ListItemText primary="Link wallet" />
+                            <ListItemText primary={connected ? "Disconnect wallet" : "Connect wallet"} />
                         </ListItemButton>
                         <ListItemButton onClick={() => session ? signOut() : console.log("not signed in..")}>
                             <ListItemIcon>

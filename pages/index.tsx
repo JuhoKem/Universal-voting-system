@@ -1,18 +1,17 @@
 import Button from "@mui/material/Button";
-import { Box, Container, CssBaseline, Paper, ThemeProvider, Typography, createTheme } from "@mui/material";
+import { Box, CircularProgress, Container, CssBaseline, Paper, ThemeProvider, Typography, createTheme } from "@mui/material";
 import { useRouter } from "next/router";
-import { useState } from "react";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 
 const mdTheme = createTheme();
 
 export default function Home() {
   const router = useRouter();
-  //const [session, setSession] = useState(false);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   
 
-  if (session) {
+  if (session && status === "authenticated") {
+    console.log("redirecting..")
     router.push("/dashboard");
   }
 
@@ -51,7 +50,7 @@ export default function Home() {
                 variant="h6"
                 noWrap
                 sx={{ flexGrow: 1 }}
-                >Please sign in
+                >{status !== "loading" ? "Please sign in" : <CircularProgress />}
               </Typography>
               <Button onClick={() => signIn()}>Sign in</Button>
         </Paper>

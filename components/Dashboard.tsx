@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import {VotingContractAddress} from '../config.js'; //This is the contracts address
 import VotingAbi from '../smart contract/build/contracts/VotingContract.json'; //ABI
 import {ethers} from 'ethers'
+import { useWalletContext } from './WalletProvider';
 
 
 const mdTheme = createTheme();
@@ -23,18 +24,19 @@ function TabPanel(props: PanelProps) {
     const { children, value, index, ...other } = props;
 
     return (
-        <div
-        role="tabpanel"
-        hidden={value !== index}
-        id={`simple-tabpanel-${index}`}
-        aria-labelledby={`simple-tab-${index}`}
-        {...other}
+        <Container
+            role="tabpanel"
+            hidden={value !== index}
+            id={`simple-tabpanel-${index}`}
+            aria-labelledby={`simple-tab-${index}`}
+            {...other}
+            sx={{ margin: 0 }}
         >{value === index && (
             <Box sx={{ p: 3 }}>
-                <Typography>{children}</Typography>
+                {children}
             </Box>
         )}
-        </div>
+        </Container>
     );
 }
 
@@ -51,6 +53,8 @@ export default function Dashboard() {
     const [tierText, setTierText] = useState(""); //For the tier text
     const [errorMessage, setErrorMessage] = useState(""); //For errors coming from the smart contract
     const [value, setValue] = useState(0); // Tab value
+
+    const { connected, setIsConnected, accountAddress, setAccountAddress } = useWalletContext();
 
     /**
      * On tab change
@@ -103,6 +107,7 @@ export default function Dashboard() {
         
         const setupEventListeners = async () => {
           try {
+            console.log("setting up event listeners...");
             const { ethereum }: any = window;
             if (ethereum) {
                 const provider = new ethers.BrowserProvider(ethereum)
@@ -141,8 +146,7 @@ export default function Dashboard() {
                 console.log("error!")
                 setErrorMessage(errorMessage);
             });
-      
-              console.log("Event listeners set up");
+                console.log("Event listeners set up");
             } else {
               console.log("ethereum object does not exist!");
             }
@@ -150,10 +154,11 @@ export default function Dashboard() {
             console.log(error);
           }
         };
-      
-        fetchData();
-        setupEventListeners();
-      }, []);
+        if (connected) {
+            fetchData();
+            setupEventListeners();
+        }
+      }, [connected]);
       
       
 
@@ -340,16 +345,16 @@ return (
             <CssBaseline />
             <SideBar />
         <Box
-          component="main"
-          sx={{
+            component="main"
+            sx={{
             backgroundColor: (theme) =>
-              theme.palette.mode === 'light'
+                theme.palette.mode === 'light'
                 ? theme.palette.grey[100]
                 : theme.palette.grey[900],
             flexGrow: 1,
             height: '100vh',
             overflow: 'auto',
-          }}
+        }}
         >
             <Toolbar />
 
@@ -361,55 +366,7 @@ return (
                         sx={{ mb: 5, ml: 0 }}>Universal voting system </Typography>
                 </Grid>
             </Container>
-
-            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                <Tabs value={value} onChange={handleChange}>
-                    <Tab label="Management" />
-                    <Tab label="Voting" />
-                </Tabs>
-            </Box>
-            <TabPanel value={value} index={0}>
-                <Typography 
-                    component="h2"
-                    variant="h6"
-                    color="inherit"
-                    sx={{ mb: 5, ml: 0 }}>Candidate management
-                </Typography>
-                <Typography>Number of candidates: {candidatesCount}</Typography>
-                <Container maxWidth="lg" sx={{ mt: 5, mb: 5, ml: 0 }}>
-                    <Grid container spacing={3} sx={{ display: "flex", flexDirection: "column", width: '50%' }}>
-                        <TextField label='Candidate name' id="addCand" value={input} onChange={ e => setInput(e.target.value)} ></TextField>
-                        <Grid item/> 
-                        <Button variant='contained' disabled={votingState} onClick={AddNewCandidate}>Add</Button>
-                        <Grid item sx={{ width: '10%' }} /> 
-                        <TextField label='Candidate id' id="delCand" value={input2} onChange={ e => setInput2(e.target.value)}></TextField>
-                        <Grid item/>
-                        <Button variant='contained' disabled={votingState} onClick={DeleteCandidate}>Delete</Button>
-                        <Grid item/>
-                        
-                    </Grid>
-                </Container>
-             {/*The button for adding a tier to a voter  */}
-             <Typography component="h2"
-                        variant="h6"
-                        color="inherit"
-                        sx={{ mb: 5, ml: 0 }}>Voter tier management</Typography>
-             <Container maxWidth="lg" sx={{ mt: 5, mb: 5, ml: 0 }}>
-                <Grid container spacing={3}>
-                    <TextField label='Voter address' id="tierAdderA" sx={{ width: '40%' }} value={input3} onChange={ e => setInput3(e.target.value)}></TextField>
-                    <Grid item/>
-                    <Button variant='contained' onClick={() => getVoterTier()}>Check Tier</Button>
-                    <Grid item sx={{ width: '5%' }} />
-                    <TextField label='Tier' id="tierAdderT" value={input4} onChange={ e => setInput4(e.target.value)}></TextField>
-                    <Grid item/>
-                    <Button variant='contained' disabled={votingState} onClick={_AddTier}>Add Tier</Button>
-                </Grid>
-                <Typography>{tierText} {tierLevel}</Typography>
-            </Container>
-
-            </TabPanel>
-
-          {/*Error messages */}
+            {/*Error messages */}
             {errorMessage && (
                 <div className="popup">
                     <div className="popup-content">
@@ -418,43 +375,94 @@ return (
                         <button onClick={() => setErrorMessage("")}>Close</button>
                     </div>
                 </div>
-                )}
-            <TabPanel value={value} index={1}>
-                <Container maxWidth="lg" sx={{ mt: 5, mb: 5, ml: 0 }}>
-                    <Grid container spacing={3}>
-                        {/*Mapping of all the candidates*/}
-                        {items.length > 0 ? (
-                            items.map((candidate: any) => (
-                                <Grid key={candidate._candidateId} item xs={12} md={4} lg={3}>
-                                <Card
-                                    sx={{
-                                        p: 2,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        height: 280,
-                                    }}
-                                    >
-                                    <CardContent>
-                                    <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                        Candidate {candidate._candidateId}
-                                        </Typography>
-                                    <Typography variant='h5' component="div">{candidate.name}</Typography>
-                                    <Typography sx={{ mb: 1.5 }} color="text.secondary"></Typography>
-                                    <Typography variant="body2">
-                                        Votes: {candidate.votes}
-                                        </Typography>
-                                    </CardContent>
-                                    <CardActions>
-                                    <Button variant='contained' onClick={() => VoteCandidate(candidate._candidateId)}>Vote</Button>
-                                    </CardActions>
-                                    </Card>
-                                </Grid>
+            )}
+
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs value={value} onChange={handleChange}>
+                    <Tab label="Voting" />
+                    <Tab label="Management" />
+                </Tabs>
+            </Box>
+            <TabPanel value={value} index={0}>
+                {connected ? (
+                    <Container maxWidth="lg" sx={{ mt: 5, mb: 5, ml: 0 }}>
+                        <Grid container spacing={3}>
+                            {/*Mapping of all the candidates*/}
+                            {items.length > 0 ? (
+                                items.map((candidate: any) => (
+                                    <Grid key={candidate._candidateId} item xs={12} md={4} lg={3}>
+                                    <Card
+                                        sx={{
+                                            p: 2,
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            height: 280,
+                                        }}
+                                        >
+                                        <CardContent>
+                                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                                            Candidate {candidate._candidateId}
+                                            </Typography>
+                                        <Typography variant='h5' component="div">{candidate.name}</Typography>
+                                        <Typography sx={{ mb: 1.5 }} color="text.secondary"></Typography>
+                                        <Typography variant="body2">
+                                            Votes: {candidate.votes}
+                                            </Typography>
+                                        </CardContent>
+                                        <CardActions>
+                                        <Button variant='contained' onClick={() => VoteCandidate(candidate._candidateId)}>Vote</Button>
+                                        </CardActions>
+                                        </Card>
+                                    </Grid>
                             ))
                             ) : (
-                            <Typography>No candidates found</Typography>
+                            <Typography>No candidates found.</Typography>
                             )}
                     </Grid>
                 </Container>
+                ) : <Typography>Please connect your wallet first.</Typography>}
+            </TabPanel>
+            <TabPanel value={value} index={1}>
+                {connected ? (
+                    <>
+                        <Typography 
+                            component="h2"
+                            variant="h6"
+                            color="inherit"
+                            sx={{ mb: 5, ml: 0 }}>Candidate management
+                        </Typography>
+                        <Typography>Number of candidates: {candidatesCount}</Typography>
+                        <Container maxWidth="lg" sx={{ mt: 5, mb: 5, ml: 0 }}>
+                            <Grid container spacing={3} sx={{ display: "flex", flexDirection: "column", width: '50%' }}>
+                                <TextField label='Candidate name' id="addCand" value={input} onChange={ e => setInput(e.target.value)} ></TextField>
+                                <Grid item/> 
+                                <Button variant='contained' disabled={votingState} onClick={AddNewCandidate}>Add</Button>
+                                <Grid item sx={{ width: '10%' }} /> 
+                                <TextField label='Candidate id' id="delCand" value={input2} onChange={ e => setInput2(e.target.value)}></TextField>
+                                <Grid item/>
+                                <Button variant='contained' disabled={votingState} onClick={DeleteCandidate}>Delete</Button>
+                                <Grid item/>
+                                
+                            </Grid>
+                        </Container>
+                        {/*The button for adding a tier to a voter  */}
+                        <Typography component="h2"
+                                    variant="h6"
+                                    color="inherit"
+                                    sx={{ mb: 5, ml: 0 }}>Voter tier management</Typography>
+                        <Container maxWidth="lg" sx={{ mt: 5, mb: 5, ml: 0 }}>
+                            <Grid container spacing={3}>
+                                <TextField label='Voter address' id="tierAdderA" sx={{ width: '40%' }} value={input3} onChange={ e => setInput3(e.target.value)}></TextField>
+                                <Grid item/>
+                                <Button variant='contained' onClick={() => getVoterTier()}>Check Tier</Button>
+                                <Grid item sx={{ width: '5%' }} />
+                                <TextField label='Tier' id="tierAdderT" value={input4} onChange={ e => setInput4(e.target.value)}></TextField>
+                                <Grid item/>
+                                <Button variant='contained' disabled={votingState} onClick={_AddTier}>Add Tier</Button>
+                            </Grid>
+                            <Typography>{tierText} {tierLevel}</Typography>
+                        </Container>
+            </>) : <Typography>Please connect your wallet first.</Typography> }
             </TabPanel>
             </Box>
         </Box>

@@ -11,7 +11,7 @@ npm install -g truffle
 npm install -g ethers
 
 
-Download and Install Ganahce for your pc
+Download and Install Ganache for your pc
 
 Install Metamask as a browser extension
 
@@ -36,11 +36,30 @@ Enter the contract address to config.js. You can find the contract address by cl
 
 Remember to do this everytime you make a new contract!
 
+Create a .env.local file to the root of the project (same folder as .env file) and add the below two lines to it and then copy the values from your own Github login provider or use some existing ones.
+
+<code>
+GITHUB_ID=xx
+
+GITHUB_SECRET=xy
+</code>
+
 cd to "voting-bc-app" folder
 
-npm run dev
+Run the following command to install the project:
 
-//the front end should now be running on http://localhost:3000
+<code>
+npm i
+</code>
+
+Then start the app with:
+
+<code>
+npm run dev
+</code>
+
+<br>
+The front end should now be running on http://localhost:3000
 
 
 ## Connecting metamask
