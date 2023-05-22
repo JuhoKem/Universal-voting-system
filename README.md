@@ -64,17 +64,16 @@ The front end should now be running on http://localhost:3000
 
 ## Connecting metamask
 
-Change to local Ganache network:
-- by clicking Metamask icon at the right top corner of the browser
-- press at the top "Ethereum Mainnet" and select "Add network"
-- in new open window you need to select at the botton "Add a network manually"
-- use following credentials to add new network:
+To change to the local Ganache network:
 
-Network name: Ganache
-New RCP URL: HTTP://127.0.0.1:7545
-Chain ID: 1337
-
-- select new "Ganache" network in Metamask
+1. Click on the MetaMask icon at the top right corner of your browser.
+2. Click on "Ethereum Mainnet" at the top and select "Add network".
+3. In the new window that opens, scroll to the bottom and click on "Add a network manually".
+4. Use the following credentials to add the new network:
+  - Network Name: Ganache
+  - New RPC URL: http://127.0.0.1:7545
+  - Chain ID: 1337
+5. Select the newly added "Ganache" network in MetaMask.
 
 Connect your metamask with the contract owner. 
 
